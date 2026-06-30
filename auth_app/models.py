@@ -1,3 +1,1 @@
-from django.db import models
-
-# Create your models here.
+# auth_app verwendet Djangos eingebautes User-Modell und definiert keine eigenen Models.

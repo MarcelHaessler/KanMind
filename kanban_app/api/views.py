@@ -14,6 +14,7 @@ from .permissions import (
 
 
 class BoardListCreateView(generics.ListCreateAPIView):
+    """View to list all boards for the authenticated user and create new boards."""
     serializer_class = BoardSerializer
 
     def get_queryset(self):
@@ -25,6 +26,7 @@ class BoardListCreateView(generics.ListCreateAPIView):
 
 
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """View to retrieve, update, or delete a specific board."""
     queryset = Board.objects.all()
     permission_classes = [IsOwnerOrMember]
 
@@ -35,6 +37,7 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class AssignedToMeView(generics.ListAPIView):
+    """View to list all tasks assigned to the authenticated user."""
     serializer_class = TaskSerializer
 
     def get_queryset(self):
@@ -42,6 +45,7 @@ class AssignedToMeView(generics.ListAPIView):
 
 
 class ReviewingView(generics.ListAPIView):
+    """View to list all tasks that the authenticated user is reviewing."""
     serializer_class = TaskSerializer
 
     def get_queryset(self):
@@ -49,6 +53,7 @@ class ReviewingView(generics.ListAPIView):
 
 
 class TaskCreateView(generics.CreateAPIView):
+    """View to create a new task in a specific board."""
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, CanCreateTaskInBoard]
@@ -58,12 +63,14 @@ class TaskCreateView(generics.CreateAPIView):
 
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """View to retrieve, update, or delete a specific task."""
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsTaskEditorOrDeleter]
 
 
 class CommentListCreateView(generics.ListCreateAPIView):
+    """View to list all comments for a specific task and create new comments."""
     serializer_class = CommentSerializer
     permission_classes = [IsBoardMember]
 
@@ -76,6 +83,7 @@ class CommentListCreateView(generics.ListCreateAPIView):
 
 
 class CommentDeleteView(generics.DestroyAPIView):
+    """View to delete a specific comment."""
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsCommentAuthor]

@@ -9,6 +9,7 @@ from .serializers import RegistrationSerializer, UserSerializer
 
 
 class RegistrationView(APIView):
+    """View to handle user registration."""
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -26,6 +27,7 @@ class RegistrationView(APIView):
 
 
 class LoginView(APIView):
+    """View to handle user login."""
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -38,7 +40,10 @@ class LoginView(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not user.check_password(password):
-            return Response({"error": "Invalid email or password"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Invalid email or password"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         token, created = Token.objects.get_or_create(user=user)
         return Response({
@@ -50,11 +55,16 @@ class LoginView(APIView):
 
 
 class EmailCheckView(APIView):
+    """View to check if a user with a given email exists."""
+
     def get(self, request):
         email = request.query_params.get('email')
 
         if not email:
-            return Response({"error": "Email parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Email parameter is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             user = User.objects.get(email=email)

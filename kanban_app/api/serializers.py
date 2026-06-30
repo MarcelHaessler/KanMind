@@ -6,6 +6,7 @@ from ..models import Board, Task, Comment
 
 
 class BoardSerializer(serializers.ModelSerializer):
+    """Serializer for Board model with additional fields for member and task counts."""
     member_count = serializers.SerializerMethodField()
     ticket_count = serializers.SerializerMethodField()
     tasks_to_do_count = serializers.SerializerMethodField()
@@ -37,6 +38,7 @@ class BoardSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    """Serializer for Task model with additional fields for assignee and reviewer details."""
     assignee = UserSerializer(read_only=True)
     reviewer = UserSerializer(read_only=True)
     assignee_id = serializers.PrimaryKeyRelatedField(
@@ -65,14 +67,19 @@ class TaskSerializer(serializers.ModelSerializer):
         members = board.members.all()
         assignee = data.get('assignee')
         if assignee and assignee not in members and assignee != board.owner:
-            raise serializers.ValidationError({"assignee_id": "Assignee muss Mitglied des Boards sein."})
+            raise serializers.ValidationError(
+                {"assignee_id": "Assignee muss Mitglied des Boards sein."}
+            )
         reviewer = data.get('reviewer')
         if reviewer and reviewer not in members and reviewer != board.owner:
-            raise serializers.ValidationError({"reviewer_id": "Reviewer muss Mitglied des Boards sein."})
+            raise serializers.ValidationError(
+                {"reviewer_id": "Reviewer muss Mitglied des Boards sein."}
+            )
         return data
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
+    """Serializer for detailed view of Board model, including members and tasks."""
     members = UserSerializer(many=True, read_only=True)
     tasks = TaskSerializer(many=True, read_only=True)
     owner_id = serializers.SerializerMethodField()
@@ -86,6 +93,7 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
 
 class BoardUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating Board model, allowing modification of title and members."""
     members = serializers.PrimaryKeyRelatedField(
         many=True, queryset=User.objects.all(), write_only=True,
     )
@@ -98,6 +106,7 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Serializer for Comment model with additional field for author details."""
     author = serializers.SerializerMethodField()
 
     class Meta:

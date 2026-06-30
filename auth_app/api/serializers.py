@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
+    """Serializer for user registration."""
     repeated_password = serializers.CharField(write_only=True)
     fullname = serializers.CharField(write_only=True)
 
@@ -13,7 +14,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if data['password'] != data['repeated_password']:
-            raise serializers.ValidationError({"repeated_password": "Passwörter stimmen nicht überein."})
+            raise serializers.ValidationError(
+                {"repeated_password": "Passwörter stimmen nicht überein."}
+            )
         return data
 
     def create(self, validated_data):
@@ -28,6 +31,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Serializer for user data."""
     fullname = serializers.SerializerMethodField()
 
     class Meta:
