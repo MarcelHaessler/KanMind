@@ -5,8 +5,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from .models import Board
-from .serializers import RegistrationSerializer, BoardSerializer
+from .serializers import (RegistrationSerializer, BoardSerializer, BoardDetailSerializer, 
+                          BoardUpdateSerializer, UserSerializer, TaskSerializer, 
+                          CommentSerializer, Comment)
+from .permissions import IsOwnerOrMember, IsTaskEditorOrDeleter, IsCommentAuthor
 from django.db.models import Q
+from .models import Board, Task
 
 class RegistrationView(APIView):
     permission_classes = [AllowAny]
@@ -74,3 +78,76 @@ class BoardListCreateView(generics.ListCreateAPIView):
     
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+
+class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Board.objects.all()
+    serializer_class = BoardDetailSerializer
+    permission_classes = [IsOwnerOrMember]
+
+    def get_serializer_class(self):
+        if self.request.method in ['PATCH', 'PUT']:
+            return BoardUpdateSerializer
+        return BoardDetailSerializer
+    
+
+class EmailCheckView(APIView):
+    def get(self, request):
+        email = request.query_params.get('email')
+
+        if not email:
+            return Response({"error": "Email parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(email=email)
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class AssignedToMeView(generics.ListAPIView):
+    serializer_class = TaskSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Task.objects.filter(assignee=user)
+
+
+class ReviewingView(generics.ListAPIView):
+    serializer_class = TaskSerializer
+
+    def get_queryset(self):
+        return Task.objects.filter(reviewer=self.request.user)
+    
+
+class TaskCreateView(generics.CreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = [IsTaskEditorOrDeleter]
+
+
+class CommentListCreateView(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        return Comment.objects.filter(task_id=self.kwargs['task_id'])
+
+    def perform_create(self, serializer):
+        task = Task.objects.get(id=self.kwargs['task_id'])
+        serializer.save(author=self.request.user, task=task)
+
+
+class CommentDeleteView(generics.DestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsCommentAuthor]
+    lookup_url_kwarg = 'comment_id'
