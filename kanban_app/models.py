@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 
 class Board(models.Model):
+    """Model representing a board, with fields for title, owner, and members."""
     title = models.CharField(max_length=255)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='boards')
     members = models.ManyToManyField(User, related_name='member_boards', blank=True)
@@ -12,7 +13,7 @@ class Board(models.Model):
 
 
 class Task(models.Model):
-    # Erlaubte Status-Werte (aus der Doku). Links der DB-Wert, rechts das Label.
+    """Model representing a task within a board, with fields for status, priority, assignee, reviewer, and due date."""
     class Status(models.TextChoices):
         TODO = "to-do", "To Do"
         IN_PROGRESS = "in-progress", "In Progress"
@@ -31,7 +32,6 @@ class Task(models.Model):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.TODO)
     priority = models.CharField(max_length=10, choices=Priority.choices, default=Priority.MEDIUM)
 
-    # Drei FKs auf User -> drei VERSCHIEDENE related_name!
     assignee = models.ForeignKey(
         User, on_delete=models.SET_NULL,
         null=True, blank=True, related_name="assigned_tasks",
@@ -51,6 +51,7 @@ class Task(models.Model):
 
 
 class Comment(models.Model):
+    """Model representing a comment on a task, with fields for the associated task, author, content, and creation timestamp."""
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="comments")
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
     content = models.TextField()
